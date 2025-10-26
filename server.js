@@ -31,7 +31,7 @@ const pool = new Pool({
 // ⚙️ Express setup
 // ------------------------------------------------------
 const app = express();
-app.use(cors()); // voor demo: alles toestaan. Later beperken tot je domein.
+app.use(cors()); // Voor demo: alles toestaan. Later beperken tot jouw domein.
 app.use(express.json());
 
 // ------------------------------------------------------
@@ -42,7 +42,8 @@ app.get("/", (req, res) => {
 });
 
 // ------------------------------------------------------
-// 🚀 Demo SQL Runner Endpoint (mag ook CREATE TABLE uitvoeren)
+// 🚀 Demo SQL Runner Endpoint
+// Toegestaan: SELECT, INSERT, UPDATE, CREATE TABLE, DROP TABLE
 // ------------------------------------------------------
 app.post("/run-sql", async (req, res) => {
   try {
@@ -59,17 +60,15 @@ app.post("/run-sql", async (req, res) => {
       return res.status(400).json({ error: "Missing or invalid 'sql' in request body" });
     }
 
-    // ✳️ Voor demo: sta SELECT en CREATE TABLE (en DROP TABLE) toe
+    // ✳️ Voor demo: sta SELECT, INSERT, UPDATE, CREATE TABLE en DROP TABLE toe
     const up = sql.trim().toUpperCase();
-    if (
-      !(
-        up.startsWith("SELECT") ||
-        up.startsWith("CREATE TABLE") ||
-        up.startsWith("DROP TABLE")
-      )
-    ) {
+    const allowedPrefixes = ["SELECT", "INSERT", "UPDATE", "CREATE TABLE", "DROP TABLE"];
+
+    const isAllowed = allowedPrefixes.some(prefix => up.startsWith(prefix));
+
+    if (!isAllowed) {
       return res.status(400).json({
-        error: "Only SELECT, CREATE TABLE, and DROP TABLE statements are allowed in demo mode."
+        error: `Statement type not allowed in demo. Allowed: ${allowedPrefixes.join(", ")}`
       });
     }
 
